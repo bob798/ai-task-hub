@@ -74,17 +74,18 @@ export default function Navbar() {
             })}
           </div>
 
-          {/* Right: Login */}
+          {/* Right: CTA */}
           <div className="hidden md:flex items-center gap-3">
-            <button
+            <Link
+              href="/generate"
               className="px-5 py-2 rounded-full text-sm font-semibold text-white transition-all duration-200 hover:opacity-90 hover:shadow-lg"
               style={{
                 background: "var(--gradient-hero)",
                 boxShadow: "0 0 20px rgba(99, 102, 241, 0.3)",
               }}
             >
-              登录
-            </button>
+              开始创作
+            </Link>
           </div>
 
           {/* Mobile: Hamburger */}
@@ -134,12 +135,14 @@ export default function Navbar() {
                 );
               })}
               <div className="px-4 pt-2">
-                <button
-                  className="w-full py-2.5 rounded-full text-sm font-semibold text-white"
+                <Link
+                  href="/generate"
+                  onClick={() => setMenuOpen(false)}
+                  className="block w-full py-2.5 rounded-full text-sm font-semibold text-white text-center"
                   style={{ background: "var(--gradient-hero)" }}
                 >
-                  登录
-                </button>
+                  开始创作
+                </Link>
               </div>
             </div>
           </div>

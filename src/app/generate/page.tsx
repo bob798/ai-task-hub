@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import type { ImageQuality, ImageSize } from "@/lib/pricing";
+import { calculateTotalCost, type ImageQuality, type ImageSize } from "@/lib/pricing";
+import { addTask } from "@/lib/tasks";
 
 interface GeneratedImage {
   url?: string;
@@ -122,9 +123,31 @@ export default function GeneratePage() {
       const data: GenerateResult = await response.json();
 
       if (!response.ok || data.error) {
-        setError(data.error ?? "生成失败，请稍后重试");
+        const message = data.error ?? "生成失败，请稍后重试";
+        setError(message);
+        addTask({
+          type: "图片生成",
+          status: "failed",
+          cost: 0,
+          prompt: trimmed,
+          size,
+          quality,
+          count,
+          mock: false,
+          error: message,
+        });
       } else {
         setResult(data);
+        addTask({
+          type: "图片生成",
+          status: "completed",
+          cost: data.cost,
+          prompt: trimmed,
+          size,
+          quality,
+          count,
+          mock: data.mock ?? false,
+        });
       }
     } catch {
       setError("网络请求失败，请检查连接后重试");
@@ -243,9 +266,17 @@ export default function GeneratePage() {
 
         {/* 生成按钮 */}
         <div className="flex items-center justify-between mb-8">
-          <p className="text-xs text-zinc-400 dark:text-zinc-500">
-            按 ⌘ + Enter 快速生成
-          </p>
+          <div>
+            <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              预计费用：
+              <span className="font-bold text-indigo-600 dark:text-indigo-400">
+                ¥{calculateTotalCost(quality, size, count).toFixed(2)}
+              </span>
+            </p>
+            <p className="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">
+              按 ⌘ + Enter 快速生成
+            </p>
+          </div>
           <button
             onClick={handleGenerate}
             disabled={loading || !prompt.trim()}

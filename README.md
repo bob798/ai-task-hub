@@ -1,36 +1,75 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AI Task Hub
 
-## Getting Started
+AI 驱动的任务完成平台 — 提交任务，AI 即刻完成。无需订阅，按次付费。
 
-First, run the development server:
+当前已上线 **AI 图片生成**（基于 OpenAI DALL·E 3），代码生成、文档处理等能力规划中。
+
+## 功能
+
+- 🎨 **AI 图片生成**：支持三种尺寸（1024×1024 / 1024×1792 / 1792×1024）、标准与高清两档质量，单次最多 4 张
+- 💳 **按次透明计费**：生成前实时显示预计费用，无月费、无订阅
+- 📋 **任务历史**：自动记录每次生成的参数、状态与费用（保存在浏览器本地）
+- 🧪 **演示模式**：未配置 API Key 时自动返回占位图，方便开发与体验
+
+## 快速开始
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+打开 [http://localhost:3000](http://localhost:3000) 即可使用。未配置 API Key 时运行在演示模式。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 接入真实图片生成
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+复制 `.env.example` 为 `.env.local` 并填入你的 OpenAI API Key：
 
-## Learn More
+```bash
+cp .env.example .env.local
+```
 
-To learn more about Next.js, take a look at the following resources:
+```env
+OPENAI_API_KEY=sk-...
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+重启开发服务器后即可调用 DALL·E 3 生成真实图片。
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 常用命令
 
-## Deploy on Vercel
+| 命令 | 说明 |
+| --- | --- |
+| `npm run dev` | 启动开发服务器 |
+| `npm run build` | 生产构建 |
+| `npm start` | 启动生产服务器 |
+| `npm run lint` | 代码检查 |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 项目结构
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+src/
+├── app/
+│   ├── page.tsx              # 首页（落地页）
+│   ├── generate/             # 图片生成页
+│   ├── pricing/              # 定价页
+│   ├── tasks/                # 任务历史页
+│   └── api/generate/         # 图片生成 API（Route Handler）
+├── components/               # Navbar / Footer
+└── lib/
+    ├── openai.ts             # OpenAI 图片生成客户端
+    ├── pricing.ts            # 定价表与费用计算
+    └── tasks.ts              # 本地任务记录（localStorage）
+```
+
+## 技术栈
+
+- [Next.js 16](https://nextjs.org)（App Router + Turbopack）
+- React 19 · TypeScript · Tailwind CSS 4
+
+## 路线图
+
+- [x] AI 图片生成（DALL·E 3）
+- [x] 按次计费与费用预估
+- [x] 任务历史记录
+- [ ] 用户账户与余额系统
+- [ ] 代码生成
+- [ ] 文档处理（总结 / 翻译 / 分析）

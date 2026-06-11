@@ -60,17 +60,22 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const result = await generateImages(apiKey, {
-      model: "gpt-image-1",
-      prompt: prompt.trim(),
-      n: count,
-      size: resolvedSize,
-      quality: resolvedQuality,
-      response_format: "url",
-    });
+    // DALL·E 3 每次请求只支持生成 1 张，多张时并行请求
+    const results = await Promise.all(
+      Array.from({ length: count }, () =>
+        generateImages(apiKey, {
+          model: "dall-e-3",
+          prompt: prompt.trim(),
+          n: 1,
+          size: resolvedSize,
+          quality: resolvedQuality,
+          response_format: "url",
+        })
+      )
+    );
 
     return NextResponse.json({
-      images: result.data,
+      images: results.flatMap((r) => r.data),
       cost: totalCost,
       mock: false,
     });
