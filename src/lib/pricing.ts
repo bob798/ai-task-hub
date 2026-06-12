@@ -25,3 +25,6 @@ export function calculateTotalCost(
 ): number {
   return getPricePerImage(quality, size) * count;
 }
+
+// 代码生成定价（人民币 / 次）
+export const CODE_PRICE = 0.2;

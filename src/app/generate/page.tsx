@@ -122,6 +122,8 @@ export default function GeneratePage() {
 
       const data: GenerateResult = await response.json();
 
+      const detail = `${quality === "hd" ? "高清" : "标准"}质量 ${size.replace("x", "×")} × ${count} 张`;
+
       if (!response.ok || data.error) {
         const message = data.error ?? "生成失败，请稍后重试";
         setError(message);
@@ -130,9 +132,7 @@ export default function GeneratePage() {
           status: "failed",
           cost: 0,
           prompt: trimmed,
-          size,
-          quality,
-          count,
+          detail,
           mock: false,
           error: message,
         });
@@ -143,9 +143,7 @@ export default function GeneratePage() {
           status: "completed",
           cost: data.cost,
           prompt: trimmed,
-          size,
-          quality,
-          count,
+          detail,
           mock: data.mock ?? false,
         });
       }

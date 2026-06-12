@@ -90,8 +90,8 @@ export default function PricingPage() {
             </p>
           </div>
 
-          {/* Code Generation Card — Coming Soon */}
-          <div className="relative flex flex-col rounded-2xl border border-dashed border-[var(--border)] bg-[var(--surface)] p-8 opacity-70">
+          {/* Code Generation Card */}
+          <div className="relative flex flex-col rounded-2xl border border-[var(--border)] bg-[var(--surface-elevated)] p-8 shadow-lg">
             <div className="mb-6 flex items-center gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 text-xl shadow-md">
                 💻
@@ -101,14 +101,22 @@ export default function PricingPage() {
                 <p className="text-sm text-[var(--muted)]">智能编程助手</p>
               </div>
             </div>
-            <div className="flex flex-1 flex-col items-center justify-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 text-center">
-              <span className="rounded-full bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-400 ring-1 ring-cyan-400/30">
-                即将推出
+            <div className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--surface)] px-5 py-4">
+              <span className="text-sm text-[var(--foreground)]">单次生成</span>
+              <span className="ml-4 shrink-0 text-xl font-bold text-indigo-400">
+                ¥0.2
+                <span className="text-sm font-normal text-[var(--muted)]">/次</span>
               </span>
-              <p className="text-sm text-[var(--muted)]">
-                支持多语言代码生成、调试与优化，敬请期待。
-              </p>
             </div>
+            <p className="mt-5 text-xs text-[var(--muted)]">
+              * 支持 TypeScript、Python、Go 等 8 种语言，生成失败不扣费。
+            </p>
+            <Link
+              href="/code"
+              className="mt-auto pt-4 text-sm font-semibold text-indigo-400 transition-opacity hover:opacity-70"
+            >
+              立即体验 →
+            </Link>
           </div>
 
           {/* Document Processing Card — Coming Soon */}

@@ -13,8 +13,8 @@ const features = [
     icon: "💻",
     title: "代码生成",
     description: "描述你的需求，AI 自动生成高质量代码。支持多种编程语言和框架。",
-    badge: "即将推出",
-    badgeColor: "#f59e0b",
+    badge: "已上线",
+    badgeColor: "#10b981",
     gradient: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
   },
   {

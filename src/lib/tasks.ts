@@ -1,5 +1,3 @@
-import type { ImageQuality, ImageSize } from "./pricing";
-
 export type TaskStatus = "completed" | "failed";
 
 export interface TaskRecord {
@@ -9,12 +7,29 @@ export interface TaskRecord {
   createdAt: string;
   cost: number;
   prompt: string;
-  size: ImageSize;
-  quality: ImageQuality;
-  count: number;
+  /** 任务参数摘要，如「高清质量 1024×1024 × 2 张」或「TypeScript」 */
+  detail: string;
   mock: boolean;
   /** 失败时的错误信息 */
   error?: string;
+}
+
+// 旧版记录使用图片专属字段，读取时转换为通用 detail
+interface LegacyTaskRecord extends Omit<TaskRecord, "detail"> {
+  detail?: string;
+  size?: string;
+  quality?: "standard" | "hd";
+  count?: number;
+}
+
+function toTaskRecord(raw: LegacyTaskRecord): TaskRecord {
+  if (typeof raw.detail === "string") return raw as TaskRecord;
+  const quality = raw.quality === "hd" ? "高清" : "标准";
+  const size = (raw.size ?? "1024x1024").replace("x", "×");
+  return {
+    ...raw,
+    detail: `${quality}质量 ${size} × ${raw.count ?? 1} 张`,
+  };
 }
 
 const STORAGE_KEY = "ai-task-hub:tasks";
@@ -31,7 +46,9 @@ export function getTasks(): TaskRecord[] {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (!raw) return EMPTY_TASKS;
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? (parsed as TaskRecord[]) : EMPTY_TASKS;
+    return Array.isArray(parsed)
+      ? (parsed as LegacyTaskRecord[]).map(toTaskRecord)
+      : EMPTY_TASKS;
   } catch {
     return EMPTY_TASKS;
   }

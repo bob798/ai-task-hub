@@ -20,6 +20,45 @@ export interface OpenAIImageResponse {
   data: OpenAIImageData[];
 }
 
+export interface ChatMessage {
+  role: "system" | "user" | "assistant";
+  content: string;
+}
+
+export interface ChatCompletionParams {
+  model: string;
+  messages: ChatMessage[];
+  max_tokens?: number;
+  temperature?: number;
+}
+
+export interface ChatCompletionResponse {
+  choices: { message: { content: string } }[];
+}
+
+export async function chatComplete(
+  apiKey: string,
+  params: ChatCompletionParams
+): Promise<ChatCompletionResponse> {
+  const response = await fetch(`${OPENAI_API_BASE}/chat/completions`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify(params),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: { message: response.statusText } }));
+    throw new Error(
+      error?.error?.message ?? `OpenAI API 请求失败: ${response.status}`
+    );
+  }
+
+  return response.json() as Promise<ChatCompletionResponse>;
+}
+
 export async function generateImages(
   apiKey: string,
   params: ImageGenerateParams

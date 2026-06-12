@@ -27,8 +27,6 @@ const STATUS_CONFIG: Record<
   },
 };
 
-const QUALITY_LABEL = { standard: "标准", hd: "高清" } as const;
-
 export default function TasksPage() {
   const tasks = useSyncExternalStore(
     subscribeTasks,
@@ -119,8 +117,8 @@ export default function TasksPage() {
               const status = STATUS_CONFIG[task.status];
               const description =
                 task.status === "failed" && task.error
-                  ? `${QUALITY_LABEL[task.quality]}质量 ${task.size.replace("x", "×")} — ${task.error}`
-                  : `${QUALITY_LABEL[task.quality]}质量 ${task.size.replace("x", "×")} × ${task.count} 张 — ${task.prompt}`;
+                  ? `${task.detail} — ${task.error}`
+                  : `${task.detail} — ${task.prompt}`;
               return (
                 <div
                   key={task.id}
