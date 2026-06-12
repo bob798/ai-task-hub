@@ -4,6 +4,7 @@ const footerLinks = [
   { href: "/", label: "首页" },
   { href: "/generate", label: "图片生成" },
   { href: "/code", label: "代码生成" },
+  { href: "/document", label: "文档处理" },
   { href: "/pricing", label: "定价" },
   { href: "/tasks", label: "任务历史" },
 ];

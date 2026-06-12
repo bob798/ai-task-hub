@@ -21,8 +21,8 @@ const features = [
     icon: "📄",
     title: "文档处理",
     description: "智能分析、总结、翻译各类文档。让繁琐的文档工作变得轻而易举。",
-    badge: "即将推出",
-    badgeColor: "#f59e0b",
+    badge: "已上线",
+    badgeColor: "#10b981",
     gradient: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
   },
   {
@@ -83,7 +83,7 @@ export default function Home() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: "var(--primary)" }} />
               <span className="relative inline-flex h-2 w-2 rounded-full" style={{ background: "var(--primary)" }} />
             </span>
-            图片生成已上线 · 按次计费，立即可用
+            图片 · 代码 · 文档三大能力已上线 · 按次计费
           </div>
 
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-tight mb-6">
@@ -98,7 +98,7 @@ export default function Home() {
           >
             提交任务，AI 即刻完成。无需订阅，按次付费。
             <br className="hidden sm:block" />
-            从图片生成开始，体验 AI 的无限可能。
+            图片生成、代码生成、文档处理，一站搞定。
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">

@@ -119,8 +119,8 @@ export default function PricingPage() {
             </Link>
           </div>
 
-          {/* Document Processing Card — Coming Soon */}
-          <div className="relative flex flex-col rounded-2xl border border-dashed border-[var(--border)] bg-[var(--surface)] p-8 opacity-70">
+          {/* Document Processing Card */}
+          <div className="relative flex flex-col rounded-2xl border border-[var(--border)] bg-[var(--surface-elevated)] p-8 shadow-lg">
             <div className="mb-6 flex items-center gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 text-xl shadow-md">
                 📄
@@ -130,14 +130,22 @@ export default function PricingPage() {
                 <p className="text-sm text-[var(--muted)]">智能文档分析与摘要</p>
               </div>
             </div>
-            <div className="flex flex-1 flex-col items-center justify-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 text-center">
-              <span className="rounded-full bg-purple-500/10 px-3 py-1 text-xs font-semibold text-purple-400 ring-1 ring-purple-400/30">
-                即将推出
+            <div className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--surface)] px-5 py-4">
+              <span className="text-sm text-[var(--foreground)]">单次处理</span>
+              <span className="ml-4 shrink-0 text-xl font-bold text-indigo-400">
+                ¥0.3
+                <span className="text-sm font-normal text-[var(--muted)]">/次</span>
               </span>
-              <p className="text-sm text-[var(--muted)]">
-                PDF 解析、长文摘要、智能问答，多种文档处理能力即将上线。
-              </p>
             </div>
+            <p className="mt-5 text-xs text-[var(--muted)]">
+              * 支持总结摘要、中英互译、要点分析，单次最长 8000 字符。
+            </p>
+            <Link
+              href="/document"
+              className="mt-auto pt-4 text-sm font-semibold text-indigo-400 transition-opacity hover:opacity-70"
+            >
+              立即体验 →
+            </Link>
           </div>
         </div>
       </section>
