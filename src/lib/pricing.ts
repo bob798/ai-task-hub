@@ -1,15 +1,15 @@
 export type ImageSize = "1024x1024" | "1024x1792" | "1792x1024";
 export type ImageQuality = "standard" | "hd";
 
-// 单张图片定价（人民币）
+// 单张图片定价（人民币）— 40-50% 毛利率
 export const PRICE_TABLE: Record<ImageQuality, Record<"square" | "other", number>> = {
   standard: {
-    square: 0.3,
-    other: 0.4,
-  },
-  hd: {
     square: 0.5,
     other: 0.7,
+  },
+  hd: {
+    square: 1.0,
+    other: 1.5,
   },
 };
 

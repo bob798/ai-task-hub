@@ -1,10 +1,10 @@
 import Link from "next/link";
 
 const imageOptions = [
-  { label: "标准质量 1024×1024", price: "¥0.3", unit: "张" },
-  { label: "标准质量 其他尺寸", price: "¥0.4", unit: "张" },
-  { label: "高清质量 1024×1024", price: "¥0.5", unit: "张" },
-  { label: "高清质量 其他尺寸", price: "¥0.7", unit: "张" },
+  { label: "标准质量 1024×1024", price: "¥0.5", unit: "张" },
+  { label: "标准质量 其他尺寸", price: "¥0.7", unit: "张" },
+  { label: "高清质量 1024×1024", price: "¥1.0", unit: "张" },
+  { label: "高清质量 其他尺寸", price: "¥1.5", unit: "张" },
 ];
 
 const faqs = [

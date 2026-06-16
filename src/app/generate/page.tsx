@@ -3,8 +3,6 @@
 import Link from "next/link";
 import { useState } from "react";
 import { calculateTotalCost, type ImageQuality, type ImageSize } from "@/lib/pricing";
-import { addTask } from "@/lib/tasks";
-import { canAfford, deduct } from "@/lib/wallet";
 
 interface GeneratedImage {
   url?: string;
@@ -112,19 +110,10 @@ export default function GeneratePage() {
       return;
     }
 
-    const estimated = calculateTotalCost(quality, size, count);
-    if (!canAfford(estimated)) {
-      setNeedRecharge(true);
-      setError(`余额不足，本次预计消耗 ¥${estimated.toFixed(2)}，请先充值`);
-      return;
-    }
-
     setLoading(true);
     setError(null);
     setNeedRecharge(false);
     setResult(null);
-
-    const detail = `${quality === "hd" ? "高清" : "标准"}质量 ${size.replace("x", "×")} × ${count} 张`;
 
     try {
       const response = await fetch("/api/generate", {
@@ -133,32 +122,15 @@ export default function GeneratePage() {
         body: JSON.stringify({ prompt: trimmed, size, quality, n: count }),
       });
 
-      const data: GenerateResult = await response.json();
+      const data = await response.json();
 
-      if (!response.ok || data.error) {
-        const message = data.error ?? "生成失败，请稍后重试";
-        setError(message);
-        addTask({
-          type: "图片生成",
-          status: "failed",
-          cost: 0,
-          prompt: trimmed,
-          detail,
-          mock: false,
-          error: message,
-        });
+      if (response.status === 402) {
+        setNeedRecharge(true);
+        setError(data.error ?? "余额不足，请先充值");
+      } else if (!response.ok || data.error) {
+        setError(data.error ?? "生成失败，请稍后重试");
       } else {
-        // 生成成功后扣费
-        deduct(data.cost, "图片生成");
         setResult(data);
-        addTask({
-          type: "图片生成",
-          status: "completed",
-          cost: data.cost,
-          prompt: trimmed,
-          detail,
-          mock: data.mock ?? false,
-        });
       }
     } catch {
       setError("网络请求失败，请检查连接后重试");

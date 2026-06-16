@@ -43,9 +43,9 @@ const useCases = [
 ];
 
 const pricingItems = [
-  { name: "标准图片生成", desc: "512×512，30秒内生成", price: "¥0.5", unit: "/ 次" },
-  { name: "高清图片生成", desc: "1024×1024，60秒内生成", price: "¥1.5", unit: "/ 次" },
-  { name: "超高清图片生成", desc: "2048×2048，90秒内生成", price: "¥3.0", unit: "/ 次" },
+  { name: "标准图片生成", desc: "1024×1024，30秒内生成", price: "¥0.5", unit: "/ 张" },
+  { name: "高清图片生成", desc: "1024×1024，60秒内生成", price: "¥1.0", unit: "/ 张" },
+  { name: "代码 / 文档处理", desc: "GPT-4o mini 驱动", price: "¥0.2", unit: "/ 次" },
 ];
 
 export default function Home() {

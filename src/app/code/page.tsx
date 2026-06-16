@@ -4,8 +4,6 @@ import Link from "next/link";
 import { useState } from "react";
 import { CODE_PRICE } from "@/lib/pricing";
 import { LANGUAGES, type CodeLanguage } from "@/lib/code";
-import { addTask } from "@/lib/tasks";
-import { canAfford, deduct } from "@/lib/wallet";
 
 interface CodeResult {
   code: string;
@@ -61,12 +59,6 @@ export default function CodePage() {
       return;
     }
 
-    if (!canAfford(CODE_PRICE)) {
-      setNeedRecharge(true);
-      setError(`余额不足，本次预计消耗 ¥${CODE_PRICE.toFixed(2)}，请先充值`);
-      return;
-    }
-
     setLoading(true);
     setError(null);
     setNeedRecharge(false);
@@ -82,29 +74,13 @@ export default function CodePage() {
 
       const data: CodeResult = await response.json();
 
-      if (!response.ok || data.error) {
-        const message = data.error ?? "生成失败，请稍后重试";
-        setError(message);
-        addTask({
-          type: "代码生成",
-          status: "failed",
-          cost: 0,
-          prompt: trimmed,
-          detail: language,
-          mock: false,
-          error: message,
-        });
+      if (response.status === 402) {
+        setNeedRecharge(true);
+        setError(data.error ?? "余额不足，请先充值");
+      } else if (!response.ok || data.error) {
+        setError(data.error ?? "生成失败，请稍后重试");
       } else {
-        deduct(data.cost, "代码生成");
         setResult(data);
-        addTask({
-          type: "代码生成",
-          status: "completed",
-          cost: data.cost,
-          prompt: trimmed,
-          detail: language,
-          mock: data.mock ?? false,
-        });
       }
     } catch {
       setError("网络请求失败，请检查连接后重试");

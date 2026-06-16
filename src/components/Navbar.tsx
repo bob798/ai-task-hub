@@ -2,12 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useSyncExternalStore } from "react";
-import {
-  getServerWalletSnapshot,
-  getWalletSnapshot,
-  subscribeWallet,
-} from "@/lib/wallet";
+import { useState, useRef, useEffect } from "react";
+import { useSession, signOut } from "next-auth/react";
 
 const navLinks = [
   { href: "/", label: "首页" },
@@ -18,27 +14,102 @@ const navLinks = [
   { href: "/tasks", label: "任务历史" },
 ];
 
-function BalancePill() {
-  const wallet = useSyncExternalStore(
-    subscribeWallet,
-    getWalletSnapshot,
-    getServerWalletSnapshot
-  );
+function UserMenu() {
+  const { data: session } = useSession();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  if (!session?.user) {
+    return (
+      <Link
+        href="/login"
+        className="px-5 py-2 rounded-full text-sm font-semibold text-white transition-all duration-200 hover:opacity-90 hover:shadow-lg"
+        style={{
+          background: "var(--gradient-hero)",
+          boxShadow: "0 0 20px rgba(99, 102, 241, 0.3)",
+        }}
+      >
+        登录
+      </Link>
+    );
+  }
+
+  const user = session.user;
+  const initial = (user.name?.[0] || user.email?.[0] || "U").toUpperCase();
+
   return (
-    <Link
-      href="/wallet"
-      className="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-semibold transition-colors"
-      style={{ borderColor: "var(--border)", color: "var(--foreground)" }}
-      title="我的钱包"
-    >
-      <span>💰</span>
-      <span className="gradient-text">¥{wallet.balance.toFixed(2)}</span>
-    </Link>
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors hover:opacity-80"
+        style={{ borderColor: "var(--border)", color: "var(--foreground)" }}
+      >
+        {user.image ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={user.image} alt="" className="h-6 w-6 rounded-full" />
+        ) : (
+          <span
+            className="flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-white"
+            style={{ background: "var(--gradient-hero)" }}
+          >
+            {initial}
+          </span>
+        )}
+        <span className="max-w-[100px] truncate">{user.name || user.email}</span>
+        <svg className="h-3.5 w-3.5 opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </button>
+
+      {open && (
+        <div
+          className="absolute right-0 top-full mt-2 w-48 rounded-xl border py-1 shadow-xl z-50"
+          style={{ background: "var(--surface-elevated)", borderColor: "var(--border)" }}
+        >
+          <div className="px-4 py-2 border-b" style={{ borderColor: "var(--border)" }}>
+            <p className="text-xs truncate" style={{ color: "var(--muted)" }}>{user.email}</p>
+          </div>
+          <Link
+            href="/wallet"
+            onClick={() => setOpen(false)}
+            className="flex items-center gap-2 px-4 py-2.5 text-sm transition-colors hover:opacity-80"
+            style={{ color: "var(--foreground)" }}
+          >
+            💰 我的钱包
+          </Link>
+          <Link
+            href="/tasks"
+            onClick={() => setOpen(false)}
+            className="flex items-center gap-2 px-4 py-2.5 text-sm transition-colors hover:opacity-80"
+            style={{ color: "var(--foreground)" }}
+          >
+            📋 任务历史
+          </Link>
+          <div className="border-t" style={{ borderColor: "var(--border)" }}>
+            <button
+              onClick={() => { setOpen(false); signOut({ callbackUrl: "/" }); }}
+              className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-400 transition-colors hover:opacity-80"
+            >
+              🚪 退出登录
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
 export default function Navbar() {
   const pathname = usePathname();
+  const { data: session } = useSession();
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -100,19 +171,9 @@ export default function Navbar() {
             })}
           </div>
 
-          {/* Right: CTA */}
+          {/* Right: User Menu */}
           <div className="hidden md:flex items-center gap-3">
-            <BalancePill />
-            <Link
-              href="/generate"
-              className="px-5 py-2 rounded-full text-sm font-semibold text-white transition-all duration-200 hover:opacity-90 hover:shadow-lg"
-              style={{
-                background: "var(--gradient-hero)",
-                boxShadow: "0 0 20px rgba(99, 102, 241, 0.3)",
-              }}
-            >
-              开始创作
-            </Link>
+            <UserMenu />
           </div>
 
           {/* Mobile: Hamburger */}
@@ -161,28 +222,38 @@ export default function Navbar() {
                   </Link>
                 );
               })}
-              <Link
-                href="/wallet"
-                onClick={() => setMenuOpen(false)}
-                className="px-4 py-2.5 rounded-lg text-sm font-medium transition-colors"
-                style={{
-                  color: pathname === "/wallet" ? "var(--primary)" : "var(--muted)",
-                  background:
-                    pathname === "/wallet" ? "rgba(99, 102, 241, 0.1)" : "transparent",
-                }}
-              >
-                💰 我的钱包
-              </Link>
-              <div className="px-4 pt-2">
-                <Link
-                  href="/generate"
-                  onClick={() => setMenuOpen(false)}
-                  className="block w-full py-2.5 rounded-full text-sm font-semibold text-white text-center"
-                  style={{ background: "var(--gradient-hero)" }}
-                >
-                  开始创作
-                </Link>
-              </div>
+              {session?.user ? (
+                <>
+                  <Link
+                    href="/wallet"
+                    onClick={() => setMenuOpen(false)}
+                    className="px-4 py-2.5 rounded-lg text-sm font-medium transition-colors"
+                    style={{ color: "var(--muted)" }}
+                  >
+                    💰 我的钱包
+                  </Link>
+                  <div className="px-4 pt-2">
+                    <button
+                      onClick={() => { setMenuOpen(false); signOut({ callbackUrl: "/" }); }}
+                      className="w-full py-2.5 rounded-full text-sm font-semibold text-red-400 border transition-colors"
+                      style={{ borderColor: "var(--border)" }}
+                    >
+                      退出登录
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="px-4 pt-2">
+                  <Link
+                    href="/login"
+                    onClick={() => setMenuOpen(false)}
+                    className="block w-full py-2.5 rounded-full text-sm font-semibold text-white text-center"
+                    style={{ background: "var(--gradient-hero)" }}
+                  >
+                    登录
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         )}

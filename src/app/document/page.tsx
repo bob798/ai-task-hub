@@ -4,8 +4,6 @@ import Link from "next/link";
 import { useState } from "react";
 import { DOC_PRICE } from "@/lib/pricing";
 import { DOC_MAX_LENGTH, DOC_MODES, type DocMode } from "@/lib/document";
-import { addTask } from "@/lib/tasks";
-import { canAfford, deduct } from "@/lib/wallet";
 
 interface DocResult {
   result: string;
@@ -57,12 +55,6 @@ export default function DocumentPage() {
       return;
     }
 
-    if (!canAfford(DOC_PRICE)) {
-      setNeedRecharge(true);
-      setError(`余额不足，本次预计消耗 ¥${DOC_PRICE.toFixed(2)}，请先充值`);
-      return;
-    }
-
     setLoading(true);
     setError(null);
     setNeedRecharge(false);
@@ -77,31 +69,14 @@ export default function DocumentPage() {
       });
 
       const data: DocResult = await response.json();
-      const promptSummary = trimmed.slice(0, 100);
 
-      if (!response.ok || data.error) {
-        const message = data.error ?? "处理失败，请稍后重试";
-        setError(message);
-        addTask({
-          type: "文档处理",
-          status: "failed",
-          cost: 0,
-          prompt: promptSummary,
-          detail: modeLabel,
-          mock: false,
-          error: message,
-        });
+      if (response.status === 402) {
+        setNeedRecharge(true);
+        setError(data.error ?? "余额不足，请先充值");
+      } else if (!response.ok || data.error) {
+        setError(data.error ?? "处理失败，请稍后重试");
       } else {
-        deduct(data.cost, "文档处理");
         setResult(data);
-        addTask({
-          type: "文档处理",
-          status: "completed",
-          cost: data.cost,
-          prompt: promptSummary,
-          detail: modeLabel,
-          mock: data.mock ?? false,
-        });
       }
     } catch {
       setError("网络请求失败，请检查连接后重试");

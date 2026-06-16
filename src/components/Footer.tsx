@@ -45,10 +45,20 @@ export default function Footer() {
             ))}
           </nav>
 
-          {/* Copyright */}
-          <p className="text-xs text-center md:text-right" style={{ color: "var(--muted)" }}>
-            &copy; {year} AI Task Hub. 保留所有权利。
-          </p>
+          {/* Legal + Copyright */}
+          <div className="flex flex-col items-center md:items-end gap-2">
+            <div className="flex gap-4">
+              <Link href="/privacy" className="text-xs transition-colors hover:opacity-80" style={{ color: "var(--muted)" }}>
+                隐私政策
+              </Link>
+              <Link href="/terms" className="text-xs transition-colors hover:opacity-80" style={{ color: "var(--muted)" }}>
+                服务条款
+              </Link>
+            </div>
+            <p className="text-xs" style={{ color: "var(--muted)" }}>
+              &copy; {year} AI Task Hub. 保留所有权利。
+            </p>
+          </div>
         </div>
       </div>
     </footer>
