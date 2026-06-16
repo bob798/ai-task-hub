@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { CODE_PRICE } from "@/lib/pricing";
 import { LANGUAGES, type CodeLanguage } from "@/lib/code";
 import { addTask } from "@/lib/tasks";
+import { canAfford, deduct } from "@/lib/wallet";
 
 interface CodeResult {
   code: string;
@@ -49,6 +51,7 @@ export default function CodePage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<CodeResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [needRecharge, setNeedRecharge] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const handleGenerate = async () => {
@@ -58,8 +61,15 @@ export default function CodePage() {
       return;
     }
 
+    if (!canAfford(CODE_PRICE)) {
+      setNeedRecharge(true);
+      setError(`余额不足，本次预计消耗 ¥${CODE_PRICE.toFixed(2)}，请先充值`);
+      return;
+    }
+
     setLoading(true);
     setError(null);
+    setNeedRecharge(false);
     setResult(null);
     setCopied(false);
 
@@ -85,6 +95,7 @@ export default function CodePage() {
           error: message,
         });
       } else {
+        deduct(data.cost, "代码生成");
         setResult(data);
         addTask({
           type: "代码生成",
@@ -219,8 +230,16 @@ export default function CodePage() {
 
         {/* 错误提示 */}
         {error && (
-          <div className="mb-6 rounded-xl border border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950 px-4 py-3 text-sm text-red-700 dark:text-red-300">
-            {error}
+          <div className="mb-6 flex items-center justify-between gap-4 rounded-xl border border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950 px-4 py-3 text-sm text-red-700 dark:text-red-300">
+            <span>{error}</span>
+            {needRecharge && (
+              <Link
+                href="/wallet"
+                className="shrink-0 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-red-700"
+              >
+                去充值
+              </Link>
+            )}
           </div>
         )}
 

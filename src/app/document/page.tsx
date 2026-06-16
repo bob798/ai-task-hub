@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { DOC_PRICE } from "@/lib/pricing";
 import { DOC_MAX_LENGTH, DOC_MODES, type DocMode } from "@/lib/document";
 import { addTask } from "@/lib/tasks";
+import { canAfford, deduct } from "@/lib/wallet";
 
 interface DocResult {
   result: string;
@@ -43,6 +45,7 @@ export default function DocumentPage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<DocResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [needRecharge, setNeedRecharge] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const modeLabel = DOC_MODES.find((m) => m.key === mode)!.label;
@@ -54,8 +57,15 @@ export default function DocumentPage() {
       return;
     }
 
+    if (!canAfford(DOC_PRICE)) {
+      setNeedRecharge(true);
+      setError(`余额不足，本次预计消耗 ¥${DOC_PRICE.toFixed(2)}，请先充值`);
+      return;
+    }
+
     setLoading(true);
     setError(null);
+    setNeedRecharge(false);
     setResult(null);
     setCopied(false);
 
@@ -82,6 +92,7 @@ export default function DocumentPage() {
           error: message,
         });
       } else {
+        deduct(data.cost, "文档处理");
         setResult(data);
         addTask({
           type: "文档处理",
@@ -206,8 +217,16 @@ export default function DocumentPage() {
 
         {/* 错误提示 */}
         {error && (
-          <div className="mb-6 rounded-xl border border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950 px-4 py-3 text-sm text-red-700 dark:text-red-300">
-            {error}
+          <div className="mb-6 flex items-center justify-between gap-4 rounded-xl border border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950 px-4 py-3 text-sm text-red-700 dark:text-red-300">
+            <span>{error}</span>
+            {needRecharge && (
+              <Link
+                href="/wallet"
+                className="shrink-0 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-red-700"
+              >
+                去充值
+              </Link>
+            )}
           </div>
         )}
 

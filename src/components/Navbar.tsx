@@ -2,7 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
+import {
+  getServerWalletSnapshot,
+  getWalletSnapshot,
+  subscribeWallet,
+} from "@/lib/wallet";
 
 const navLinks = [
   { href: "/", label: "首页" },
@@ -12,6 +17,25 @@ const navLinks = [
   { href: "/pricing", label: "定价" },
   { href: "/tasks", label: "任务历史" },
 ];
+
+function BalancePill() {
+  const wallet = useSyncExternalStore(
+    subscribeWallet,
+    getWalletSnapshot,
+    getServerWalletSnapshot
+  );
+  return (
+    <Link
+      href="/wallet"
+      className="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-semibold transition-colors"
+      style={{ borderColor: "var(--border)", color: "var(--foreground)" }}
+      title="我的钱包"
+    >
+      <span>💰</span>
+      <span className="gradient-text">¥{wallet.balance.toFixed(2)}</span>
+    </Link>
+  );
+}
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -78,6 +102,7 @@ export default function Navbar() {
 
           {/* Right: CTA */}
           <div className="hidden md:flex items-center gap-3">
+            <BalancePill />
             <Link
               href="/generate"
               className="px-5 py-2 rounded-full text-sm font-semibold text-white transition-all duration-200 hover:opacity-90 hover:shadow-lg"
@@ -136,6 +161,18 @@ export default function Navbar() {
                   </Link>
                 );
               })}
+              <Link
+                href="/wallet"
+                onClick={() => setMenuOpen(false)}
+                className="px-4 py-2.5 rounded-lg text-sm font-medium transition-colors"
+                style={{
+                  color: pathname === "/wallet" ? "var(--primary)" : "var(--muted)",
+                  background:
+                    pathname === "/wallet" ? "rgba(99, 102, 241, 0.1)" : "transparent",
+                }}
+              >
+                💰 我的钱包
+              </Link>
               <div className="px-4 pt-2">
                 <Link
                   href="/generate"

@@ -7,6 +7,7 @@ const footerLinks = [
   { href: "/document", label: "文档处理" },
   { href: "/pricing", label: "定价" },
   { href: "/tasks", label: "任务历史" },
+  { href: "/wallet", label: "我的钱包" },
 ];
 
 export default function Footer() {

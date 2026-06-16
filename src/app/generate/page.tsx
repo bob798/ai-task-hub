@@ -1,8 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { calculateTotalCost, type ImageQuality, type ImageSize } from "@/lib/pricing";
 import { addTask } from "@/lib/tasks";
+import { canAfford, deduct } from "@/lib/wallet";
 
 interface GeneratedImage {
   url?: string;
@@ -101,6 +103,7 @@ export default function GeneratePage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<GenerateResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [needRecharge, setNeedRecharge] = useState(false);
 
   const handleGenerate = async () => {
     const trimmed = prompt.trim();
@@ -109,9 +112,19 @@ export default function GeneratePage() {
       return;
     }
 
+    const estimated = calculateTotalCost(quality, size, count);
+    if (!canAfford(estimated)) {
+      setNeedRecharge(true);
+      setError(`余额不足，本次预计消耗 ¥${estimated.toFixed(2)}，请先充值`);
+      return;
+    }
+
     setLoading(true);
     setError(null);
+    setNeedRecharge(false);
     setResult(null);
+
+    const detail = `${quality === "hd" ? "高清" : "标准"}质量 ${size.replace("x", "×")} × ${count} 张`;
 
     try {
       const response = await fetch("/api/generate", {
@@ -121,8 +134,6 @@ export default function GeneratePage() {
       });
 
       const data: GenerateResult = await response.json();
-
-      const detail = `${quality === "hd" ? "高清" : "标准"}质量 ${size.replace("x", "×")} × ${count} 张`;
 
       if (!response.ok || data.error) {
         const message = data.error ?? "生成失败，请稍后重试";
@@ -137,6 +148,8 @@ export default function GeneratePage() {
           error: message,
         });
       } else {
+        // 生成成功后扣费
+        deduct(data.cost, "图片生成");
         setResult(data);
         addTask({
           type: "图片生成",
@@ -308,8 +321,16 @@ export default function GeneratePage() {
 
         {/* 错误提示 */}
         {error && (
-          <div className="mb-6 rounded-xl border border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950 px-4 py-3 text-sm text-red-700 dark:text-red-300">
-            {error}
+          <div className="mb-6 flex items-center justify-between gap-4 rounded-xl border border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950 px-4 py-3 text-sm text-red-700 dark:text-red-300">
+            <span>{error}</span>
+            {needRecharge && (
+              <Link
+                href="/wallet"
+                className="shrink-0 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-red-700"
+              >
+                去充值
+              </Link>
+            )}
           </div>
         )}
 
