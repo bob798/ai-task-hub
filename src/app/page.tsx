@@ -3,23 +3,23 @@ import Link from "next/link";
 const features = [
   {
     icon: "🎨",
-    title: "AI 图片生成",
-    description: "输入文字描述，秒速生成高质量图片。支持多种风格和分辨率，满足创意无限可能。",
+    title: "图片创作",
+    description: "描述你想要的画面，AI 秒速创作高质量图片。支持多种风格和分辨率。",
     badge: "已上线",
     badgeColor: "#10b981",
     gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
   },
   {
     icon: "💻",
-    title: "代码生成",
-    description: "描述你的需求，AI 自动生成高质量代码。支持多种编程语言和框架。",
+    title: "代码创作",
+    description: "描述你的需求，AI 为你编写高质量代码。支持多种编程语言和框架。",
     badge: "已上线",
     badgeColor: "#10b981",
     gradient: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
   },
   {
     icon: "📄",
-    title: "文档处理",
+    title: "智能文档",
     description: "智能分析、总结、翻译各类文档。让繁琐的文档工作变得轻而易举。",
     badge: "已上线",
     badgeColor: "#10b981",
@@ -28,7 +28,7 @@ const features = [
   {
     icon: "💳",
     title: "按次透明计费",
-    description: "无月费，无订阅。只为你实际使用的任务付费，成本完全可控。",
+    description: "无月费，无订阅。只为实际创作付费，成本完全可控。",
     badge: "灵活付费",
     badgeColor: "#6366f1",
     gradient: "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
@@ -45,7 +45,7 @@ const useCases = [
 const pricingItems = [
   { name: "标准图片生成", desc: "1024×1024，30秒内生成", price: "¥0.5", unit: "/ 张" },
   { name: "高清图片生成", desc: "1024×1024，60秒内生成", price: "¥1.0", unit: "/ 张" },
-  { name: "代码 / 文档处理", desc: "GPT-4o mini 驱动", price: "¥0.2", unit: "/ 次" },
+  { name: "代码 / 文档", desc: "AI 驱动", price: "¥0.2", unit: "/ 次" },
 ];
 
 export default function Home() {
@@ -83,27 +83,25 @@ export default function Home() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: "var(--primary)" }} />
               <span className="relative inline-flex h-2 w-2 rounded-full" style={{ background: "var(--primary)" }} />
             </span>
-            图片 · 代码 · 文档三大能力已上线 · 按次计费
+            图片 · 代码 · 文档 — 你的 AI 创作工作台
           </div>
 
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-tight mb-6">
             <span className="gradient-text">AI 驱动的</span>
             <br />
-            任务完成平台
+            创作工作台
           </h1>
 
           <p
             className="text-lg sm:text-xl max-w-2xl mx-auto mb-10 leading-relaxed"
             style={{ color: "var(--muted)" }}
           >
-            提交任务，AI 即刻完成。无需订阅，按次付费。
-            <br className="hidden sm:block" />
-            图片生成、代码生成、文档处理，一站搞定。
+            描述你的想法，AI 即刻创作。从灵感到作品，只需几秒。
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
-              href="/generate"
+              href="/create/image"
               className="inline-flex items-center gap-2 px-8 py-4 rounded-full text-base font-bold text-white transition-all duration-300 hover:scale-105 hover:shadow-2xl"
               style={{
                 background: "var(--gradient-hero)",
@@ -131,7 +129,7 @@ export default function Home() {
           {/* Trust indicators */}
           <div className="mt-12 flex flex-wrap items-center justify-center gap-6 text-sm" style={{ color: "var(--muted)" }}>
             <span className="flex items-center gap-1.5">
-              <span>✅</span> 无需注册即可试用
+              <span>✅</span> 注册即送 ¥1 体验额度
             </span>
             <span className="flex items-center gap-1.5">
               <span>⚡</span> 30 秒内生成
@@ -148,10 +146,10 @@ export default function Home() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              强大功能，<span className="gradient-text">一触即发</span>
+              三大创作能力，<span className="gradient-text">一触即发</span>
             </h2>
             <p className="text-base max-w-xl mx-auto" style={{ color: "var(--muted)" }}>
-              我们正在构建全面的 AI 任务平台，从图片生成出发，逐步扩展到更多场景
+              从灵感到成品，AI 帮你完成创作中最耗时的部分
             </p>
           </div>
 
@@ -200,18 +198,17 @@ export default function Home() {
             {/* Left: Text */}
             <div>
               <h2 className="text-3xl sm:text-4xl font-bold mb-6">
-                <span className="gradient-text">谁适合</span>使用 AI Task Hub？
+                <span className="gradient-text">为创作者</span>而生
               </h2>
               <p className="text-base mb-8 leading-relaxed" style={{ color: "var(--muted)" }}>
-                无论你是个人创作者、小型团队还是企业用户，AI Task Hub
-                都能按需为你提供强大的 AI 能力，无需技术背景，人人可用。
+                无论你是设计师、开发者还是内容创作者，AI Task Hub 让你专注创意本身。
               </p>
               <Link
-                href="/generate"
+                href="/create/image"
                 className="inline-flex items-center gap-2 text-sm font-semibold transition-colors hover:opacity-70"
                 style={{ color: "var(--primary)" }}
               >
-                立即体验图片生成
+                开始你的第一件作品
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <path d="M5 12h14M12 5l7 7-7 7" />
                 </svg>
@@ -323,13 +320,13 @@ export default function Home() {
 
             <div className="relative z-10">
               <h2 className="text-3xl sm:text-4xl font-black text-white mb-4">
-                准备好了吗？
+                把想法变成作品
               </h2>
               <p className="text-white/80 text-base mb-8 max-w-lg mx-auto">
-                立即体验 AI 驱动的图片生成，无需注册，按次付费，随用随取。
+                注册即送体验额度，几秒内创作你的第一件作品。
               </p>
               <Link
-                href="/generate"
+                href="/create/image"
                 className="inline-flex items-center gap-2 px-8 py-4 rounded-full text-base font-bold bg-white transition-all duration-300 hover:scale-105 hover:shadow-2xl"
                 style={{ color: "#6366f1" }}
               >

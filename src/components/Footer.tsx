@@ -2,11 +2,11 @@ import Link from "next/link";
 
 const footerLinks = [
   { href: "/", label: "首页" },
-  { href: "/generate", label: "图片生成" },
-  { href: "/code", label: "代码生成" },
-  { href: "/document", label: "文档处理" },
+  { href: "/create/image", label: "图片创作" },
+  { href: "/create/code", label: "代码创作" },
+  { href: "/create/document", label: "智能文档" },
   { href: "/pricing", label: "定价" },
-  { href: "/tasks", label: "任务历史" },
+  { href: "/gallery", label: "我的作品" },
   { href: "/wallet", label: "我的钱包" },
 ];
 

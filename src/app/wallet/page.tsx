@@ -92,7 +92,7 @@ export default function WalletPage() {
             <div className="py-12 text-center">
               <p className="text-sm text-[var(--muted)]">
                 还没有收支记录。
-                <Link href="/generate" className="ml-1 text-indigo-400 hover:opacity-80">去生成第一个任务 →</Link>
+                <Link href="/create/image" className="ml-1 text-indigo-400 hover:opacity-80">创作第一件作品 →</Link>
               </p>
             </div>
           ) : (

@@ -10,7 +10,7 @@ const imageOptions = [
 const faqs = [
   {
     q: "什么是按次计费？",
-    a: "按次计费意味着您只需为实际使用的服务付费，每次成功生成图片或完成任务后，对应金额从余额中扣除，无需订阅月费。",
+    a: "按次计费意味着您只需为实际创作付费，每次成功完成创作后，对应金额从余额中扣除，无需订阅月费。",
   },
   {
     q: "如何充值和付款？",
@@ -51,7 +51,7 @@ export default function PricingPage() {
           <span className="gradient-text">按需付费</span>
         </h1>
         <p className="mx-auto mt-6 max-w-xl text-lg text-[var(--muted)]">
-          无月费、无订阅，用多少付多少。所有价格含税，清晰透明，无任何隐藏收费。
+          按作品付费，不按月收费。创作失败不扣费。
         </p>
       </section>
 
@@ -65,8 +65,8 @@ export default function PricingPage() {
                 🖼️
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-[var(--foreground)]">图片生成</h2>
-                <p className="text-sm text-[var(--muted)]">由 DALL·E 3 强力驱动</p>
+                <h2 className="text-xl font-semibold text-[var(--foreground)]">图片创作</h2>
+                <p className="text-sm text-[var(--muted)]">AI 图片创作</p>
               </div>
             </div>
 
@@ -97,8 +97,8 @@ export default function PricingPage() {
                 💻
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-[var(--foreground)]">代码生成</h2>
-                <p className="text-sm text-[var(--muted)]">智能编程助手</p>
+                <h2 className="text-xl font-semibold text-[var(--foreground)]">代码创作</h2>
+                <p className="text-sm text-[var(--muted)]">AI 代码创作</p>
               </div>
             </div>
             <div className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--surface)] px-5 py-4">
@@ -126,8 +126,8 @@ export default function PricingPage() {
                 📄
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-[var(--foreground)]">文档处理</h2>
-                <p className="text-sm text-[var(--muted)]">智能文档分析与摘要</p>
+                <h2 className="text-xl font-semibold text-[var(--foreground)]">智能文档</h2>
+                <p className="text-sm text-[var(--muted)]">AI 文档处理</p>
               </div>
             </div>
             <div className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--surface)] px-5 py-4">
@@ -181,11 +181,11 @@ export default function PricingPage() {
             立即开始体验，首次注册赠送试用额度，无需信用卡。
           </p>
           <Link
-            href="/generate"
+            href="/create/image"
             className="inline-block rounded-full px-8 py-3 text-base font-semibold text-white shadow-lg transition-opacity hover:opacity-90"
             style={{ background: "var(--gradient-hero)" }}
           >
-            免费开始生成
+            领取体验额度
           </Link>
         </div>
       </section>

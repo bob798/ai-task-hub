@@ -7,11 +7,11 @@ import { useSession, signOut } from "next-auth/react";
 
 const navLinks = [
   { href: "/", label: "首页" },
-  { href: "/generate", label: "图片生成" },
-  { href: "/code", label: "代码生成" },
-  { href: "/document", label: "文档处理" },
+  { href: "/create/image", label: "图片创作" },
+  { href: "/create/code", label: "代码创作" },
+  { href: "/create/document", label: "智能文档" },
   { href: "/pricing", label: "定价" },
-  { href: "/tasks", label: "任务历史" },
+  { href: "/gallery", label: "我的作品" },
 ];
 
 function UserMenu() {
@@ -86,12 +86,12 @@ function UserMenu() {
             💰 我的钱包
           </Link>
           <Link
-            href="/tasks"
+            href="/gallery"
             onClick={() => setOpen(false)}
             className="flex items-center gap-2 px-4 py-2.5 text-sm transition-colors hover:opacity-80"
             style={{ color: "var(--foreground)" }}
           >
-            📋 任务历史
+            🎨 我的作品
           </Link>
           <div className="border-t" style={{ borderColor: "var(--border)" }}>
             <button
