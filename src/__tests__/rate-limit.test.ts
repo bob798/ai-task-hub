@@ -1,10 +1,13 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { checkRateLimit } from "@/lib/rate-limit";
 
 describe("checkRateLimit", () => {
   beforeEach(() => {
-    // Reset the internal rate map by advancing time past window
     vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it("allows first request", () => {

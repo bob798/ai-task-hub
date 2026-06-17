@@ -1,10 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { DOC_MAX_LENGTH } from "@/lib/document";
-
-// The sanitization logic extracted from src/app/api/auth/register/route.ts
-function sanitizeName(name: string): string | null {
-  return name.replace(/<[^>]*>/g, "").trim().slice(0, 50) || null;
-}
+import { sanitizeName } from "@/lib/sanitize";
 
 describe("input validation and sanitization", () => {
   describe("name sanitization", () => {

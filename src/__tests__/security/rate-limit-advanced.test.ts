@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { checkRateLimit } from "@/lib/rate-limit";
 
 // Each test uses unique user/action combos to avoid cross-test state pollution,
@@ -7,6 +7,10 @@ import { checkRateLimit } from "@/lib/rate-limit";
 describe("rate limit — advanced scenarios", () => {
   beforeEach(() => {
     vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it("concurrent requests from same user all count toward the limit", () => {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { sanitizeName } from "@/lib/sanitize";
 
 const SIGNUP_BONUS = 1.0;
 
@@ -37,10 +38,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "密码至少 8 个字符" }, { status: 400 });
   }
 
-  // Sanitize name: strip HTML tags, limit length
-  const sanitizedName = name
-    ? name.replace(/<[^>]*>/g, "").trim().slice(0, 50) || null
-    : null;
+  const sanitizedName = name ? sanitizeName(name) : null;
 
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {

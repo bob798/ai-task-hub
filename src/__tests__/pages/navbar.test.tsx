@@ -54,6 +54,6 @@ describe("Navbar - mobile menu", () => {
     const before = screen.getAllByText("图片创作").length;
     await user.click(hamburgers[0]);
     const after = screen.getAllByText("图片创作").length;
-    expect(after).toBeGreaterThanOrEqual(before);
+    expect(after).toBeGreaterThan(before);
   });
 });

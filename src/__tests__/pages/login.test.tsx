@@ -47,7 +47,7 @@ describe("LoginPage", () => {
     expect(loginBtns[0]).toHaveAttribute("type", "submit");
   });
 
-  it("shows error when submitting with empty fields", async () => {
+  it("calls signIn with credentials on form submission", async () => {
     const user = userEvent.setup();
     render(<LoginPage />);
 
