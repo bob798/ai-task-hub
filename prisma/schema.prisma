@@ -105,8 +105,8 @@ model Transaction {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@unique([externalId])
   @@index([userId, createdAt(sort: Desc)])
-  @@index([externalId])
 }
 
 enum TransactionType {

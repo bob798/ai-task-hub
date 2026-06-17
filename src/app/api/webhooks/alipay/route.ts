@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAlipay } from "@/lib/alipay";
 import { prisma } from "@/lib/db";
-import { addBalance } from "@/lib/balance";
 
 export async function POST(request: NextRequest) {
   const formData = await request.formData();
@@ -10,7 +9,6 @@ export async function POST(request: NextRequest) {
     params[key] = String(value);
   });
 
-  // Verify signature
   const alipay = getAlipay();
   const isValid = alipay.checkNotifySign(params);
   if (!isValid) {
@@ -18,34 +16,42 @@ export async function POST(request: NextRequest) {
   }
 
   const tradeStatus = params.trade_status;
-  const outTradeNo = params.out_trade_no; // our transaction ID
-  const tradeNo = params.trade_no; // alipay trade number
+  const outTradeNo = params.out_trade_no;
+  const tradeNo = params.trade_no;
 
   if (tradeStatus === "TRADE_SUCCESS" || tradeStatus === "TRADE_FINISHED") {
-    // Find pending transaction
-    const transaction = await prisma.transaction.findUnique({
-      where: { id: outTradeNo },
-    });
-
-    if (transaction && transaction.status === "PENDING") {
-      // Credit balance
-      await addBalance(
-        transaction.userId,
-        transaction.amount.toNumber(),
-        transaction.description || "支付宝充值",
-        {
-          type: "TOPUP",
-          paymentMethod: "alipay",
-          externalId: tradeNo,
-        }
-      );
-
-      // Mark original pending transaction as completed
-      await prisma.transaction.update({
-        where: { id: outTradeNo },
+    await prisma.$transaction(async (tx) => {
+      // Optimistic lock: only update if still PENDING
+      const updated = await tx.transaction.updateMany({
+        where: { id: outTradeNo, status: "PENDING" },
         data: { status: "COMPLETED", externalId: tradeNo },
       });
-    }
+
+      // If no rows updated, already processed — skip (idempotent)
+      if (updated.count === 0) return;
+
+      const transaction = await tx.transaction.findUniqueOrThrow({
+        where: { id: outTradeNo },
+      });
+
+      const user = await tx.user.findUniqueOrThrow({
+        where: { id: transaction.userId },
+        select: { balance: true },
+      });
+
+      const newBalance = user.balance.plus(transaction.amount);
+
+      await tx.user.update({
+        where: { id: transaction.userId },
+        data: { balance: newBalance },
+      });
+
+      // Update balanceAfter on the transaction
+      await tx.transaction.update({
+        where: { id: outTradeNo },
+        data: { balanceAfter: newBalance },
+      });
+    }, { isolationLevel: "Serializable" });
   }
 
   return new NextResponse("success", { status: 200 });

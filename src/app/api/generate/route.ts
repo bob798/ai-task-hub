@@ -135,7 +135,11 @@ export async function POST(request: NextRequest) {
     const message = err instanceof Error ? err.message : "图片生成失败，请稍后重试";
 
     // Refund on failure
-    await addBalance(userId, totalCost, `图片生成失败退款`, { type: "REFUND" });
+    try {
+      await addBalance(userId, totalCost, `图片生成失败退款`, { type: "REFUND" });
+    } catch (refundErr) {
+      console.error(`[REFUND_FAILED] userId=${userId} taskId=${task.id} amount=${totalCost}`, refundErr);
+    }
     await updateTaskStatus(task.id, "FAILED", undefined, message);
 
     return NextResponse.json({ error: message }, { status: 500 });

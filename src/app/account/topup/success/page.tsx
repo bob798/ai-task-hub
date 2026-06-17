@@ -27,7 +27,7 @@ export default function TopupSuccessPage() {
         )}
         <div className="flex items-center justify-center gap-4">
           <Link
-            href="/generate"
+            href="/create/image"
             className="rounded-full px-6 py-3 text-sm font-semibold text-white"
             style={{ background: "var(--gradient-hero)" }}
           >

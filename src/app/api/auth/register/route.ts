@@ -1,10 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
+import { checkRateLimit } from "@/lib/rate-limit";
 
-const SIGNUP_BONUS = 1.0; // 注册赠送 ¥1.00 试用额度
+const SIGNUP_BONUS = 1.0;
 
 export async function POST(request: NextRequest) {
+  // Rate limit by IP
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const rateCheck = checkRateLimit(ip, "register");
+  if (!rateCheck.allowed) {
+    return NextResponse.json(
+      { error: `注册请求过于频繁，请 ${rateCheck.retryAfter} 秒后重试` },
+      { status: 429 }
+    );
+  }
+
   let body: unknown;
   try {
     body = await request.json();
@@ -23,32 +34,30 @@ export async function POST(request: NextRequest) {
   }
 
   if (password.length < 8) {
-    return NextResponse.json(
-      { error: "密码至少 8 个字符" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "密码至少 8 个字符" }, { status: 400 });
   }
+
+  // Sanitize name: strip HTML tags, limit length
+  const sanitizedName = name
+    ? name.replace(/<[^>]*>/g, "").trim().slice(0, 50) || null
+    : null;
 
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
-    return NextResponse.json(
-      { error: "该邮箱已被注册" },
-      { status: 409 }
-    );
+    return NextResponse.json({ error: "该邮箱已被注册" }, { status: 409 });
   }
 
   const passwordHash = await bcrypt.hash(password, 12);
 
   const user = await prisma.user.create({
     data: {
-      name: name || null,
+      name: sanitizedName,
       email,
       passwordHash,
       balance: SIGNUP_BONUS,
     },
   });
 
-  // 记录注册赠送交易
   if (SIGNUP_BONUS > 0) {
     await prisma.transaction.create({
       data: {

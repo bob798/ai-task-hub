@@ -6,6 +6,7 @@ import { CODE_PRICE } from "@/lib/pricing";
 import { LANGUAGES } from "@/lib/code";
 import { deductBalance, addBalance } from "@/lib/balance";
 import { createTask, updateTaskStatus } from "@/lib/tasks";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 const SYSTEM_PROMPT =
   "你是一名资深软件工程师。根据用户需求生成高质量、可直接运行的代码。" +
@@ -29,6 +30,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "请先登录" }, { status: 401 });
   }
   const userId = session.user.id;
+
+  const rateCheck = checkRateLimit(userId, "code");
+  if (!rateCheck.allowed) {
+    return NextResponse.json(
+      { error: `请求过于频繁，请 ${rateCheck.retryAfter} 秒后重试` },
+      { status: 429, headers: { "Retry-After": String(rateCheck.retryAfter) } }
+    );
+  }
 
   let body: unknown;
   try {
@@ -88,7 +97,8 @@ export async function POST(request: NextRequest) {
 
     const code = result.choices[0]?.message?.content?.trim();
     if (!code) {
-      await addBalance(userId, CODE_PRICE, "代码生成失败退款", { type: "REFUND" });
+      try { await addBalance(userId, CODE_PRICE, "代码生成失败退款", { type: "REFUND" }); }
+      catch (e) { console.error(`[REFUND_FAILED] userId=${userId} taskId=${task.id}`, e); }
       await updateTaskStatus(task.id, "FAILED", undefined, "生成结果为空");
       return NextResponse.json({ error: "生成结果为空，请稍后重试" }, { status: 500 });
     }
@@ -97,7 +107,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ code, cost: CODE_PRICE, mock: false, taskId: task.id, newBalance: deductResult.newBalance });
   } catch (err) {
     const message = err instanceof Error ? err.message : "代码生成失败，请稍后重试";
-    await addBalance(userId, CODE_PRICE, "代码生成失败退款", { type: "REFUND" });
+    try { await addBalance(userId, CODE_PRICE, "代码生成失败退款", { type: "REFUND" }); }
+    catch (e) { console.error(`[REFUND_FAILED] userId=${userId} taskId=${task.id}`, e); }
     await updateTaskStatus(task.id, "FAILED", undefined, message);
     return NextResponse.json({ error: message }, { status: 500 });
   }

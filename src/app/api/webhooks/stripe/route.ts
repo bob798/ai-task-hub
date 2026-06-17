@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
-import { addBalance } from "@/lib/balance";
+import { prisma } from "@/lib/db";
 
 export async function POST(request: NextRequest) {
   const body = await request.text();
@@ -28,12 +28,41 @@ export async function POST(request: NextRequest) {
 
     if (userId && amount) {
       const totalCredit = parseFloat(amount) + parseFloat(bonus || "0");
+      const description = `Stripe 充值 ¥${amount}${bonus && parseFloat(bonus) > 0 ? ` + 赠送 ¥${bonus}` : ""}`;
 
-      await addBalance(userId, totalCredit, `Stripe 充值 ¥${amount}${bonus && parseFloat(bonus) > 0 ? ` + 赠送 ¥${bonus}` : ""}`, {
-        type: "TOPUP",
-        paymentMethod: "stripe",
-        externalId: session.id,
-      });
+      await prisma.$transaction(async (tx) => {
+        // Idempotency: check if this session.id already processed
+        const existing = await tx.transaction.findUnique({
+          where: { externalId: session.id },
+        });
+        if (existing) return; // Already processed
+
+        const user = await tx.user.findUniqueOrThrow({
+          where: { id: userId },
+          select: { balance: true },
+        });
+
+        const newBalance = user.balance.plus(totalCredit);
+
+        await tx.user.update({
+          where: { id: userId },
+          data: { balance: newBalance },
+        });
+
+        await tx.transaction.create({
+          data: {
+            userId,
+            type: "TOPUP",
+            amount: totalCredit,
+            balanceBefore: user.balance,
+            balanceAfter: newBalance,
+            description,
+            paymentMethod: "stripe",
+            externalId: session.id,
+            status: "COMPLETED",
+          },
+        });
+      }, { isolationLevel: "Serializable" });
     }
   }
 

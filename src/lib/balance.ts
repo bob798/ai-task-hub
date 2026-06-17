@@ -108,9 +108,10 @@ export async function addBalance(
 }
 
 export async function getBalance(userId: string): Promise<number> {
-  const user = await prisma.user.findUniqueOrThrow({
+  const user = await prisma.user.findUnique({
     where: { id: userId },
     select: { balance: true },
   });
+  if (!user) return 0;
   return user.balance.toNumber();
 }
