@@ -4,17 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
+import { getLocale, t, type Locale } from "@/lib/i18n";
+import LocaleSwitcher from "@/components/LocaleSwitcher";
 
-const navLinks = [
-  { href: "/", label: "首页" },
-  { href: "/create/image", label: "图片创作" },
-  { href: "/create/code", label: "代码创作" },
-  { href: "/create/document", label: "智能文档" },
-  { href: "/pricing", label: "定价" },
-  { href: "/gallery", label: "我的作品" },
-];
-
-function UserMenu() {
+function UserMenu({ locale }: { locale: Locale }) {
   const { data: session } = useSession();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -37,7 +30,7 @@ function UserMenu() {
           boxShadow: "0 0 20px rgba(99, 102, 241, 0.3)",
         }}
       >
-        登录
+        {t(locale, "nav.login")}
       </Link>
     );
   }
@@ -83,7 +76,7 @@ function UserMenu() {
             className="flex items-center gap-2 px-4 py-2.5 text-sm transition-colors hover:opacity-80"
             style={{ color: "var(--foreground)" }}
           >
-            💰 我的钱包
+            💰 {t(locale, "nav.wallet")}
           </Link>
           <Link
             href="/gallery"
@@ -91,14 +84,14 @@ function UserMenu() {
             className="flex items-center gap-2 px-4 py-2.5 text-sm transition-colors hover:opacity-80"
             style={{ color: "var(--foreground)" }}
           >
-            🎨 我的作品
+            🎨 {t(locale, "nav.myWorks")}
           </Link>
           <div className="border-t" style={{ borderColor: "var(--border)" }}>
             <button
               onClick={() => { setOpen(false); signOut({ callbackUrl: "/" }); }}
               className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-400 transition-colors hover:opacity-80"
             >
-              🚪 退出登录
+              🚪 {t(locale, "nav.logout")}
             </button>
           </div>
         </div>
@@ -111,6 +104,20 @@ export default function Navbar() {
   const pathname = usePathname();
   const { data: session } = useSession();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [locale, setLocaleState] = useState<Locale>("zh");
+
+  useEffect(() => {
+    setLocaleState(getLocale());
+  }, []);
+
+  const navLinks = [
+    { href: "/", label: t(locale, "nav.home") },
+    { href: "/create/image", label: t(locale, "nav.imageCreate") },
+    { href: "/create/code", label: t(locale, "nav.codeCreate") },
+    { href: "/create/document", label: t(locale, "nav.smartDoc") },
+    { href: "/pricing", label: t(locale, "nav.pricing") },
+    { href: "/gallery", label: t(locale, "nav.myWorks") },
+  ];
 
   return (
     <nav
@@ -171,9 +178,10 @@ export default function Navbar() {
             })}
           </div>
 
-          {/* Right: User Menu */}
+          {/* Right: Locale + User Menu */}
           <div className="hidden md:flex items-center gap-3">
-            <UserMenu />
+            <LocaleSwitcher locale={locale} />
+            <UserMenu locale={locale} />
           </div>
 
           {/* Mobile: Hamburger */}
@@ -230,7 +238,7 @@ export default function Navbar() {
                     className="px-4 py-2.5 rounded-lg text-sm font-medium transition-colors"
                     style={{ color: "var(--muted)" }}
                   >
-                    💰 我的钱包
+                    💰 {t(locale, "nav.wallet")}
                   </Link>
                   <div className="px-4 pt-2">
                     <button
@@ -238,7 +246,7 @@ export default function Navbar() {
                       className="w-full py-2.5 rounded-full text-sm font-semibold text-red-400 border transition-colors"
                       style={{ borderColor: "var(--border)" }}
                     >
-                      退出登录
+                      {t(locale, "nav.logout")}
                     </button>
                   </div>
                 </>
@@ -250,7 +258,7 @@ export default function Navbar() {
                     className="block w-full py-2.5 rounded-full text-sm font-semibold text-white text-center"
                     style={{ background: "var(--gradient-hero)" }}
                   >
-                    登录
+                    {t(locale, "nav.login")}
                   </Link>
                 </div>
               )}

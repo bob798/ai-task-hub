@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
-const PROTECTED_PATHS = ["/create", "/gallery", "/wallet", "/account"];
+const PROTECTED_PATHS = ["/create", "/gallery", "/wallet", "/account", "/admin"];
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -27,5 +27,6 @@ export const config = {
     "/gallery/:path*",
     "/wallet/:path*",
     "/account/:path*",
+    "/admin/:path*",
   ],
 };

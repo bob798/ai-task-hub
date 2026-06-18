@@ -2,11 +2,16 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+
 function formatTaskTime(iso: string | Date): string {
   const date = typeof iso === "string" ? new Date(iso) : iso;
   if (Number.isNaN(date.getTime())) return String(iso);
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+}
+
+interface ImageResult {
+  images?: { url: string }[];
 }
 
 interface TaskItem {
@@ -15,6 +20,7 @@ interface TaskItem {
   status: "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
   prompt: string;
   params: Record<string, unknown> | null;
+  result: ImageResult | Record<string, unknown> | null;
   cost: string;
   errorMsg: string | null;
   createdAt: string;
@@ -52,6 +58,15 @@ const TYPE_LABELS: Record<string, string> = {
   document_processing: "文档处理",
 };
 
+type TabFilter = "all" | "image_generation" | "code_generation" | "document_processing";
+
+const TABS: { key: TabFilter; label: string }[] = [
+  { key: "all", label: "全部" },
+  { key: "image_generation", label: "图片" },
+  { key: "code_generation", label: "代码" },
+  { key: "document_processing", label: "文档" },
+];
+
 function getTaskDetail(task: TaskItem): string {
   const params = task.params || {};
   if (task.type === "image_generation") {
@@ -69,10 +84,23 @@ function getTaskDetail(task: TaskItem): string {
   return "";
 }
 
+function getImageThumbnail(task: TaskItem): string | null {
+  if (
+    task.type !== "image_generation" ||
+    task.status !== "COMPLETED" ||
+    !task.result
+  ) {
+    return null;
+  }
+  const result = task.result as ImageResult;
+  return result?.images?.[0]?.url ?? null;
+}
+
 export default function GalleryPage() {
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
+  const [activeTab, setActiveTab] = useState<TabFilter>("all");
 
   useEffect(() => {
     fetch("/api/user/tasks")
@@ -84,6 +112,9 @@ export default function GalleryPage() {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
+
+  const filteredTasks =
+    activeTab === "all" ? tasks : tasks.filter((t) => t.type === activeTab);
 
   const completedCount = tasks.filter((t) => t.status === "COMPLETED").length;
   const totalCost = tasks
@@ -157,45 +188,82 @@ export default function GalleryPage() {
           </div>
         ) : (
           <div className="space-y-4">
-            {tasks.map((task) => {
-              const status = STATUS_CONFIG[task.status] || STATUS_CONFIG.PENDING;
-              const detail = getTaskDetail(task);
-              const description =
-                task.status === "FAILED" && task.errorMsg
-                  ? `${detail} — ${task.errorMsg}`
-                  : `${detail} — ${task.prompt}`;
-
-              return (
-                <div
-                  key={task.id}
-                  className="flex flex-col gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] px-6 py-5 transition-shadow hover:shadow-md sm:flex-row sm:items-center sm:justify-between"
+            {/* Tab filter */}
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              {TABS.map((tab) => (
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key)}
+                  className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+                    activeTab === tab.key
+                      ? "bg-indigo-500 text-white"
+                      : "border border-[var(--border)] bg-[var(--surface)] text-[var(--muted)] hover:text-[var(--foreground)]"
+                  }`}
                 >
-                  <div className="flex flex-col gap-1.5 min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-2.5 py-0.5 text-xs font-medium text-[var(--foreground)]">
-                        {TYPE_LABELS[task.type] || task.type}
-                      </span>
-                      <span className={`flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${status.className}`}>
-                        <span className={`h-1.5 w-1.5 rounded-full ${status.dot}`} />
-                        {status.label}
-                      </span>
-                    </div>
-                    <p className="truncate text-sm text-[var(--muted)]">{description}</p>
-                    <p className="text-xs text-[var(--muted)] opacity-70">
-                      {formatTaskTime(task.createdAt)}
-                    </p>
-                  </div>
+                  {tab.label}
+                </button>
+              ))}
+            </div>
 
-                  <div className="shrink-0 text-right">
-                    <p className={`text-xl font-bold ${task.status === "FAILED" ? "text-[var(--muted)]" : "text-indigo-400"}`}>
-                      {task.status === "FAILED" ? "¥0.00" : `¥${parseFloat(task.cost).toFixed(2)}`}
-                    </p>
-                    {task.status === "COMPLETED" && <p className="text-xs text-[var(--muted)]">已扣费</p>}
-                    {task.status === "FAILED" && <p className="text-xs text-red-400">已退款</p>}
+            {filteredTasks.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-[var(--border)] py-16 text-center">
+                <p className="text-sm text-[var(--muted)]">该分类暂无作品</p>
+              </div>
+            ) : (
+              filteredTasks.map((task) => {
+                const status = STATUS_CONFIG[task.status] || STATUS_CONFIG.PENDING;
+                const detail = getTaskDetail(task);
+                const description =
+                  task.status === "FAILED" && task.errorMsg
+                    ? `${detail} — ${task.errorMsg}`
+                    : `${detail} — ${task.prompt}`;
+                const thumbnail = getImageThumbnail(task);
+
+                return (
+                  <div
+                    key={task.id}
+                    className="flex flex-col gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] px-6 py-5 transition-shadow hover:shadow-md sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <div className="flex items-start gap-4 min-w-0 flex-1">
+                      {thumbnail && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={thumbnail}
+                          alt="缩略图"
+                          width={80}
+                          height={80}
+                          className="shrink-0 rounded-lg object-cover"
+                          style={{ width: 80, height: 80 }}
+                        />
+                      )}
+                      <div className="flex flex-col gap-1.5 min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-2.5 py-0.5 text-xs font-medium text-[var(--foreground)]">
+                            {TYPE_LABELS[task.type] || task.type}
+                          </span>
+                          <span className={`flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${status.className}`}>
+                            <span className={`h-1.5 w-1.5 rounded-full ${status.dot}`} />
+                            {status.label}
+                          </span>
+                        </div>
+                        <p className="truncate text-sm text-[var(--muted)]">{description}</p>
+                        <p className="text-xs text-[var(--muted)] opacity-70">
+                          {formatTaskTime(task.createdAt)}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="shrink-0 text-right">
+                      <p className={`text-xl font-bold ${task.status === "FAILED" ? "text-[var(--muted)]" : "text-indigo-400"}`}>
+                        {task.status === "FAILED" ? "¥0.00" : `¥${parseFloat(task.cost).toFixed(2)}`}
+                      </p>
+                      {task.status === "COMPLETED" && <p className="text-xs text-[var(--muted)]">已扣费</p>}
+                      {task.status === "FAILED" && <p className="text-xs text-red-400">已退款</p>}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
 
             <div className="flex items-center justify-center gap-4 pt-4">
               <Link

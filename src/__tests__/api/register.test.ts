@@ -10,6 +10,10 @@ vi.mock("@/lib/db", () => ({
     transaction: {
       create: vi.fn(),
     },
+    verificationCode: {
+      findFirst: vi.fn(),
+      deleteMany: vi.fn(),
+    },
   },
 }));
 
@@ -32,6 +36,8 @@ const mockCheckRateLimit = vi.mocked(checkRateLimit);
 const mockFindUnique = vi.mocked(prisma.user.findUnique);
 const mockUserCreate = vi.mocked(prisma.user.create);
 const mockTransactionCreate = vi.mocked(prisma.transaction.create);
+const mockVerificationCodeFindFirst = vi.mocked(prisma.verificationCode.findFirst);
+const mockVerificationCodeDeleteMany = vi.mocked(prisma.verificationCode.deleteMany);
 const mockBcryptHash = vi.mocked(bcrypt.hash);
 
 function makeRequest(body: unknown, ip = "127.0.0.1") {
@@ -54,11 +60,13 @@ describe("POST /api/auth/register", () => {
     mockFindUnique.mockResolvedValue(null);
     mockUserCreate.mockResolvedValue({ id: "new-user-id" } as never);
     mockTransactionCreate.mockResolvedValue({} as never);
+    mockVerificationCodeFindFirst.mockResolvedValue({ id: "vc1", email: "", code: "123456", expiresAt: new Date(Date.now() + 600000), createdAt: new Date() } as never);
+    mockVerificationCodeDeleteMany.mockResolvedValue({ count: 1 } as never);
   });
 
   it("returns 429 when rate limited", async () => {
     mockCheckRateLimit.mockReturnValue({ allowed: false, retryAfter: 60 });
-    const res = await POST(makeRequest({ email: "a@b.com", password: "password123" }));
+    const res = await POST(makeRequest({ email: "a@b.com", password: "password123", verificationCode: "123456" }));
     expect(res.status).toBe(429);
     const data = await res.json();
     expect(data.error).toBeDefined();
@@ -79,7 +87,7 @@ describe("POST /api/auth/register", () => {
   });
 
   it("returns 400 for password shorter than 8 characters", async () => {
-    const res = await POST(makeRequest({ email: "a@b.com", password: "short" }));
+    const res = await POST(makeRequest({ email: "a@b.com", password: "short", verificationCode: "123456" }));
     expect(res.status).toBe(400);
     const data = await res.json();
     expect(data.error).toBeDefined();
@@ -87,14 +95,14 @@ describe("POST /api/auth/register", () => {
 
   it("returns 409 for duplicate email", async () => {
     mockFindUnique.mockResolvedValue({ id: "existing-id" } as never);
-    const res = await POST(makeRequest({ email: "existing@b.com", password: "password123" }));
+    const res = await POST(makeRequest({ email: "existing@b.com", password: "password123", verificationCode: "123456" }));
     expect(res.status).toBe(409);
     const data = await res.json();
     expect(data.error).toBeDefined();
   });
 
   it("returns 200 on successful registration", async () => {
-    const res = await POST(makeRequest({ email: "new@b.com", password: "password123" }));
+    const res = await POST(makeRequest({ email: "new@b.com", password: "password123", verificationCode: "123456" }));
     expect(res.status).toBe(200);
     const data = await res.json();
     expect(data.success).toBe(true);
@@ -105,7 +113,7 @@ describe("POST /api/auth/register", () => {
     // The route uses /<[^>]*>/g which removes angle-bracket tags but NOT inner text.
     // "<b>Bob</b>" → strips "<b>" and "</b>" → leaves "Bob"
     const res = await POST(
-      makeRequest({ name: "<b>Bob</b>", email: "bob@b.com", password: "password123" })
+      makeRequest({ name: "<b>Bob</b>", email: "bob@b.com", password: "password123", verificationCode: "123456" })
     );
     expect(res.status).toBe(200);
     expect(mockUserCreate).toHaveBeenCalledWith(
@@ -118,7 +126,7 @@ describe("POST /api/auth/register", () => {
   });
 
   it("creates a GIFT transaction for the signup bonus", async () => {
-    const res = await POST(makeRequest({ email: "bonus@b.com", password: "password123" }));
+    const res = await POST(makeRequest({ email: "bonus@b.com", password: "password123", verificationCode: "123456" }));
     expect(res.status).toBe(200);
     expect(mockTransactionCreate).toHaveBeenCalledWith(
       expect.objectContaining({

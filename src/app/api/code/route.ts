@@ -7,6 +7,8 @@ import { LANGUAGES } from "@/lib/code";
 import { deductBalance, addBalance } from "@/lib/balance";
 import { createTask, updateTaskStatus } from "@/lib/tasks";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { reportError } from "@/lib/error-reporter";
+import { trackUsage } from "@/lib/usage-monitor";
 
 const SYSTEM_PROMPT =
   "你是一名资深软件工程师。根据用户需求生成高质量、可直接运行的代码。" +
@@ -104,9 +106,11 @@ export async function POST(request: NextRequest) {
     }
 
     await updateTaskStatus(task.id, "COMPLETED", { code });
+    trackUsage(CODE_PRICE);
     return NextResponse.json({ code, cost: CODE_PRICE, mock: false, taskId: task.id, newBalance: deductResult.newBalance });
   } catch (err) {
     const message = err instanceof Error ? err.message : "代码生成失败，请稍后重试";
+    reportError(err, { userId, action: "code" });
     try { await addBalance(userId, CODE_PRICE, "代码生成失败退款", { type: "REFUND" }); }
     catch (e) { console.error(`[REFUND_FAILED] userId=${userId} taskId=${task.id}`, e); }
     await updateTaskStatus(task.id, "FAILED", undefined, message);

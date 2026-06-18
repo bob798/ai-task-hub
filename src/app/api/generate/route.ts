@@ -6,6 +6,9 @@ import { calculateTotalCost, type ImageQuality, type ImageSize } from "@/lib/pri
 import { deductBalance, addBalance } from "@/lib/balance";
 import { createTask, updateTaskStatus } from "@/lib/tasks";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { downloadImageAsBase64 } from "@/lib/image-storage";
+import { reportError } from "@/lib/error-reporter";
+import { trackUsage } from "@/lib/usage-monitor";
 
 const VALID_SIZES: ImageSize[] = ["1024x1024", "1024x1792", "1792x1024"];
 const VALID_QUALITIES: ImageQuality[] = ["standard", "hd"];
@@ -121,8 +124,26 @@ export async function POST(request: NextRequest) {
       )
     );
 
-    const images = results.flatMap((r) => r.data);
+    const rawImages = results.flatMap((r) => r.data);
+
+    // Convert temporary DALL-E URLs to persistent base64 data URIs
+    const images = await Promise.all(
+      rawImages.map(async (img) => {
+        if (!img.url) return img;
+        try {
+          const base64Url = await downloadImageAsBase64(img.url);
+          return { url: base64Url, revised_prompt: img.revised_prompt };
+        } catch (err) {
+          console.error("[IMAGE_DOWNLOAD_FAILED]", err);
+          // Fall back to original URL if download fails
+          return img;
+        }
+      })
+    );
+
     await updateTaskStatus(task.id, "COMPLETED", JSON.parse(JSON.stringify({ images })));
+
+    trackUsage(totalCost);
 
     return NextResponse.json({
       images,
@@ -133,6 +154,8 @@ export async function POST(request: NextRequest) {
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "图片生成失败，请稍后重试";
+
+    reportError(err, { userId, action: "generate" });
 
     // Refund on failure
     try {
